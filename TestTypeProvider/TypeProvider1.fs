@@ -16,7 +16,7 @@ type public TypeProvider1() as this =
     
     do newT.AddMember(
         ProvidedMethod(
-                "createMydirectly",
+                "createMyDirectly",
                 [],
                 typeof<My>,
                 InvokeCode = fun args -> <@@ { P = 2 } @@>))
@@ -30,7 +30,14 @@ type public TypeProvider1() as this =
                 typeof<My>,
                 InvokeCode = fun args -> <@@ my @@>))
 
-    do newT.AddMember (ProvidedConstructor([], InvokeCode = fun args -> <@@ () @@>)) 
+    do newT.AddMember(
+        ProvidedMethod(
+                "returnMyGivenInConstructor",
+                [],
+                typeof<My>,
+                InvokeCode = fun args -> <@@ (%%args.[0]: obj) :?> My @@>))
+
+    do newT.AddMember (ProvidedConstructor([], InvokeCode = fun args -> <@@ { P = 4 } @@>)) 
     do this.AddNamespace (rootNamespace, [newT])
 
 [<TypeProviderAssembly>]
