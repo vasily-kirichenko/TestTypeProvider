@@ -12,6 +12,7 @@ type public TypeProvider1() as this =
     let thisAssembly = Assembly.GetExecutingAssembly()
     let rootNamespace = "Samples.ShareInfo.TPTest"
     let baseTy = typeof<obj>
+    //let baseTy = typeof<My>
     let newT = ProvidedTypeDefinition(thisAssembly, rootNamespace, "TPTestType", Some baseTy)
     
     do newT.AddMember(
@@ -35,7 +36,10 @@ type public TypeProvider1() as this =
                 "returnMyGivenInConstructor",
                 [],
                 typeof<My>,
-                InvokeCode = fun args -> <@@ (%%args.[0]: obj) :?> My @@>))
+                InvokeCode = fun args -> 
+                    <@@ (%%args.[0]: obj) :?> My @@>
+                    //<@@ %%args.[0]: My @@>
+                    ))
 
     do newT.AddMember (ProvidedConstructor([], InvokeCode = fun args -> <@@ { P = 4 } @@>)) 
     do this.AddNamespace (rootNamespace, [newT])
