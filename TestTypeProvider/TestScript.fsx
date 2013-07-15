@@ -11,5 +11,7 @@ let my1 = t.createMyDirectly()
 // The error: Unsupported constant type 'Samples.FSharp.TestTypeProvider.My'	
 let my2 = t.returnInstanceOfMy()
 
+let my3 = t.returnCopyOfInstanceOfMy()
+
 // OK
-let my3 = t.returnMyGivenInConstructor()
+let my4 = t.returnMyGivenInConstructor()

@@ -24,12 +24,21 @@ type public TypeProvider1() as this =
 
     let my = { P = 3 }
 
+    // does not work
     do newT.AddMember(
         ProvidedMethod(
                 "returnInstanceOfMy",
                 [],
                 typeof<My>,
                 InvokeCode = fun args -> <@@ my @@>))
+
+    // does not work
+    do newT.AddMember(
+        ProvidedMethod(
+                "returnCopyOfInstanceOfMy",
+                [],
+                typeof<My>,
+                InvokeCode = fun args -> <@@ { my with P = my.P } @@>))
 
     do newT.AddMember(
         ProvidedMethod(
