@@ -3,8 +3,8 @@
 open System.Reflection
 open Microsoft.FSharp.Core.CompilerServices
 open Samples.FSharp.ProvidedTypes
-
-type My = { P: int }
+open System.IO
+open Microsoft.FSharp.Quotations
 
 [<TypeProvider>]
 type public TypeProvider1() as this =
@@ -12,46 +12,27 @@ type public TypeProvider1() as this =
     let thisAssembly = Assembly.GetExecutingAssembly()
     let rootNamespace = "Samples.ShareInfo.TPTest"
     let baseTy = typeof<obj>
-    //let baseTy = typeof<My>
-    let newT = ProvidedTypeDefinition(thisAssembly, rootNamespace, "TPTestType", Some baseTy)
+    let assembly = ProvidedAssembly @"d:\_tt_.dll"
+    let t = ProvidedTypeDefinition(thisAssembly, rootNamespace, "TPTestType", Some baseTy,
+                                   IsErased=false, SuppressRelocation=false)
     
-    do newT.AddMember(
-        ProvidedMethod(
-                "createMyDirectly",
-                [],
-                typeof<My>,
-                InvokeCode = fun args -> <@@ { P = 2 } @@>))
+    do 
+        let field = ProvidedField ("data", typeof<string>)
+        
+        t.AddMember(
+            ProvidedConstructor(
+                [ ProvidedParameter ("input", typeof<string>) ],
+                InvokeCode = fun [me; arg] -> Expr.FieldSet (me, field, arg)))
 
-    let my = { P = 3 }
+        t.AddMember(
+            ProvidedProperty(
+                "Data",
+                typeof<string>,
+                GetterCode = fun [me] -> Expr.FieldGet (me, field)))
 
-    // does not work
-    do newT.AddMember(
-        ProvidedMethod(
-                "returnInstanceOfMy",
-                [],
-                typeof<My>,
-                InvokeCode = fun args -> <@@ my @@>))
-
-    // does not work
-    do newT.AddMember(
-        ProvidedMethod(
-                "returnCopyOfInstanceOfMy",
-                [],
-                typeof<My>,
-                InvokeCode = fun args -> <@@ { my with P = my.P } @@>))
-
-    do newT.AddMember(
-        ProvidedMethod(
-                "returnMyGivenInConstructor",
-                [],
-                typeof<My>,
-                InvokeCode = fun args -> 
-                    <@@ (%%args.[0]: obj) :?> My @@>
-                    //<@@ %%args.[0]: My @@>
-                    ))
-
-    do newT.AddMember (ProvidedConstructor([], InvokeCode = fun args -> <@@ { P = 4 } @@>)) 
-    do this.AddNamespace (rootNamespace, [newT])
+        t.AddMember field
+        assembly.AddTypes [t]
+        this.AddNamespace (rootNamespace, [t])
 
 [<TypeProviderAssembly>]
 do ()
